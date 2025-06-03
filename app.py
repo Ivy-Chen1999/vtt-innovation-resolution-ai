@@ -114,6 +114,8 @@ These charts summarize statistical patterns in the innovation network:
 - Count of innovations
 - Proportion of multi-source or multi-developer innovations
 - Top contributing organizations
+
+please refresh the page if a server connection error occurs, as the cache server is not working properly with Streamlit.
 """)
 
 
