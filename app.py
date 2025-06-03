@@ -114,8 +114,9 @@ These charts summarize statistical patterns in the innovation network:
 - Count of innovations
 - Proportion of multi-source or multi-developer innovations
 - Top contributing organizations
+            
+please refresh the page if a server connection error occurs, as the cache server is not working properly with Streamlit.
 """)
-
 
 img_path = "results/innovation_network_tufte_2D.png"
 if os.path.exists(img_path):
@@ -124,6 +125,7 @@ if os.path.exists(img_path):
     st.image(img, use_container_width=True)
 else:
     st.warning("2D PNG image not found.")
+
 
 
 
