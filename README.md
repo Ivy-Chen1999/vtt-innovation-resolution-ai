@@ -1,11 +1,82 @@
 ### ✨ About this Fork
-This is a personal continuation of the AaltoAI Hackathon 2025 project. Originally based on the AaltoAI Hackathon project (2025). This version continues development with a focus on Azure OpenAI integration and web interface.
+This is a personal continuation of the AaltoAI Hackathon 2025 project. Originally based on the AaltoAI Hackathon project (2025). This version continues development with a focus on Azure OpenAI integration , Vector Store and web interface.
+
+---
+
+# 🧠 Innovation Resolution Platform
+
+This project provides a semantic analysis and deduplication system for innovation data, built with **LangChain**, **Azure OpenAI**, **Qdrant**, and a **Streamlit** web interface.
+
+## 🚀 Getting Started (Local Version)
+
+### Prerequisites
+
+* [Docker](https://www.docker.com/)
+* [Docker Compose](https://docs.docker.com/compose/)
+
+### 1. Set up Environment Variables
+
+Create a `.env` file in the project root with the following variables:
+
+```bash
+AZURE_OPENAI_ENDPOINT=
+AZURE_OPENAI_API_KEY=
+
+AZURE_OPENAI_API_VERSION=2024-10-21
+
+AZURE_OPENAI_CHAT_DEPLOYMENT_gpt_4_1=
+AZURE_OPENAI_CHAT_DEPLOYMENT_gpt_4o_mini=
+
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT_LARGE=
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT_SMALL=
+
+AZURE_SEARCH_ENDPOINT=
+AZURE_SEARCH_KEY=
+AZURE_SEARCH_INDEX_NAME=
+
+DOCKER_QDRANT_URL=http://qdrant:6333
+```
+
+> ⚠️ Make sure all keys are valid and authorized in your Azure OpenAI and Azure AI Search deployments(Optional).
+
+### 2. Run the Application
+
+```bash
+docker-compose up -d
+```
+
+This command will:
+
+* Start a `Qdrant` vector database at `http://localhost:6333`
+* Launch the `Streamlit` app at `http://localhost:8501`
+
+> The Streamlit app will automatically wait for Qdrant to become available before launching.
+
+### 3. Access the Application
+
+Once running, open your browser and navigate to:
+
+```
+http://localhost:8501
+```
+
+Here, you can upload innovation data, trigger semantic analysis, and visualize deduplicated relationships in real time.
+
+---
+
+## ☁️ Fly.io Deployment
+
+To deploy this project to the cloud, check the `flyio_deployment` branch and follow the setup instructions there.
+
+---
+
+
+# Below is the original README
+
 
 # VTT Innovation Resolution
 
 Youtube Link: https://www.youtube.com/watch?v=yKNr22bu9Yc
-
-Streamlit app link: https://test-vtt.streamlit.app
 
 This project addresses the challenge of identifying and consolidating innovation disclosures from VTT's collaboration partnerships.
 

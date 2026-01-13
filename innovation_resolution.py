@@ -14,30 +14,19 @@ import json
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Tuple, Set, Any, Optional, Union, Protocol
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import seaborn as sns
 import networkx as nx
-from sklearn.feature_extraction.text import TfidfVectorizer
+# from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import plotly.graph_objects as go
-import plotly.express as px
+# import plotly.graph_objects as go
+# import plotly.express as px
 from tqdm import tqdm
 from vis import visualize_network_tufte
 
-from langchain_openai import AzureChatOpenAI
-from langchain_openai import AzureOpenAIEmbeddings
+from azure_openai import get_openai_models, chat_bot, DEFAULT_DIMS
 
-from langchain_openai import AzureChatOpenAI
-from langchain_openai import AzureOpenAIEmbeddings
-
-from langchain_community.vectorstores.azuresearch import AzureSearch
-
-from langchain_core.documents import Document
-
-from langchain_core.prompts import PromptTemplate
-
-from azure_openai import get_openai_models, VectorStore, \
-                            CONFIG_PATH, DEFAULT_DIMS, DEFAULT_INDEX_PATH
+from qdrant import VectorStore
 
 import math
 
@@ -683,108 +672,6 @@ def load_and_combine_data() -> Tuple[pd.DataFrame, List[Dict], List[Dict]]:
     return combined_df, all_pred_entities, all_pred_relations
 
 
-def initialize_openai_client():
-    """初始化OpenAI客户端"""
-    import json
-    
-    # 打印调试信息
-    print("="*50)
-    print("初始化OpenAI客户端...")
-    print(f"当前工作目录: {os.getcwd()}")
-    print(f"DATA_DIR: {DATA_DIR}")
-    
-    try:
-        # 尝试从streamlit secrets获取配置
-        import streamlit as st
-        
-        print("尝试从st.secrets获取配置...")
-        if hasattr(st, 'secrets') and st.secrets:
-            print(f"st.secrets可用，包含以下键: {list(st.secrets.keys()) if hasattr(st.secrets, 'keys') else 'No keys method'}")
-            if 'default_model' in st.secrets:
-                print(f"默认模型信息: {st.secrets['default_model']}")
-            if 'gpt-4.1-mini' in st.secrets:
-                print(f"模型配置包含键: {list(st.secrets['gpt-4.1-mini'].keys()) if hasattr(st.secrets['gpt-4.1-mini'], 'keys') else 'No keys method'}")
-            if 'azure-ai-search' in st.secrets:
-                print(f"向量存储配置包含键: {list(st.secrets['azure-ai-search'].keys()) if hasattr(st.secrets['azure-ai-search'], 'keys') else 'No keys method'}")
-        else:
-            print("st.secrets不可用")
-        
-        config = st.secrets
-        
-        # 如果streamlit secrets不可用，尝试从文件读取
-        if not config:
-            print("st.secrets为空，尝试从文件读取...")
-            # ✅ 优先从环境变量读取路径
-            config_path = os.environ.get("AZURE_CONFIG", os.path.join(DATA_DIR, 'keys', 'azure_config.json'))
-            print(f"尝试读取配置文件: {config_path}")
-            
-            if not os.path.exists(config_path):
-                print(f"API配置文件未找到: {config_path}")
-                print("请获取API密钥并按照README.md中的说明创建配置文件")
-                return None, None, None
-            
-            with open(config_path, 'r') as f:
-                config = json.load(f)
-            print(f"从文件加载配置成功，包含键: {list(config.keys())}")
-        
-        dim = 3072
-        # 如果使用streamlit secrets，需要适配其结构
-        if hasattr(config, 'get'):
-            # 从st.secrets中获取
-            model_name = config.get('default_model', {}).get('name', 'gpt-4.1-mini')
-            model_config = config.get(model_name, {})
-            vector_store_name = 'azure-ai-search'
-            vector_store_config = config.get(vector_store_name, {})
-        else:
-            # 从JSON配置中获取
-            model_name = 'gpt-4.1-mini'
-            model_config = config.get(model_name, {})
-            vector_store_name = 'azure-ai-search'
-            vector_store_config = config.get(vector_store_name, {})
-        
-        if model_config:
-            api_key = model_config.get('api_key')
-            api_base = model_config.get('api_base', '')
-            # 移除URL部分（如果存在）
-            base_endpoint = api_base.split('/openai')[0] if '/openai' in api_base else api_base
-            
-            llm = AzureChatOpenAI(
-                api_key=api_key,
-                azure_endpoint=base_endpoint,
-                azure_deployment=model_config.get('deployment'),
-                api_version=model_config.get('api_version'),
-                temperature=0
-            )
-            
-            embedding_model = AzureOpenAIEmbeddings(
-                api_key=api_key,
-                azure_endpoint=base_endpoint,
-                azure_deployment=model_config.get('emb_deployment'),
-                api_version=model_config.get('api_version'),
-                dimensions=dim
-            )
-            
-            if vector_store_config:
-                vector_store = AzureSearch(
-                    azure_search_endpoint = vector_store_config.get('azure_endpoint'),
-                    azure_search_key = vector_store_config.get('api_key'),
-                    index_name = vector_store_config.get('index_name'),
-                    embedding_function = embedding_model
-                )
-                
-                return llm, embedding_model, vector_store
-            else:
-                print(f"Vector store {vector_store_name} configuration not found")
-                return llm, embedding_model, None
-        else:
-            print(f"Model {model_name} configuration not found")
-            return None, None, None
-    except Exception as e:
-        print(f"Error initializing OpenAI client: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return None, None, None
-
 
 def get_embedding(text: str, model) -> np.ndarray:
     """
@@ -1093,11 +980,12 @@ def resolve_innovation_duplicates(
 
     if using_local_store and vector_store is not None:
 
-        embedding_matrix = np.vstack([v for k, v in embeddings.items()])
+        # embedding_matrix = np.vstack([v for k, v in embeddings.items()])
 
         innovation_texts = [innovation_features[iid] for iid in innovation_ids]
+        embeddings_input = [embeddings[iid] for iid in innovation_ids]
 
-        vector_store.save_embeds_and_texts(embedding_matrix, innovation_texts)
+        vector_store.load(innovation_texts, embeddings_input)
 
         print("Saved embeddings to local vectore store...")
 
@@ -1440,69 +1328,6 @@ def export_results(analysis_results: Dict, consolidated_graph: Dict, canonical_m
     print(f"Results exported to {output_dir}")
 
 
-def chat_bot(query:str) -> str:
-
-    llm, embedding_model, vector_store, using_local_store = get_openai_models()
-
-    
-    if llm is None:
-        return "Error: Language model not available. Please check your configuration."
-    
-    if embedding_model is None:
-        return "Error: Embedding model unavailable. Please check your configuration."
-    
-    if vector_store is None:
-        return "Error: Vectore store unavailable. Please check your configuration."
-    
-
-    # Set up Chatbot
-    chatbot_prompt = PromptTemplate.from_template("""
-
-        You're a smart assistant helping extract insights from VTT innovation relationships.
-
-        Context:
-        {context}
-
-        According to the context, answer this question:
-        {question}
-    """)
-
-    chatbot_llm = chatbot_prompt | llm
-
-    if using_local_store:
-
-        try:
-            _, result_texts = vector_store.search([query], k = 5)
-            context = "\n".join(result_texts[0])
-
-        except Exception as e:
-            print(f"Error during vector search: {str(e)}")
-            context = "No relevant information found."
-
-        try:
-            llm_result = chatbot_llm.invoke({"context":context, "question":query})
-            answer = llm_result.content
-        except Exception as e:
-            print(f"Error generating answer: {str(e)}")
-            answer = f"Sorry, I couldn't process your question. Error: {str(e)}"
-
-
-    else:
-        try:
-            results = vector_store.vector_search(query, k = 5)
-            context = "\n".join([res.metadata['source'] for res in results])
-        except Exception as e:
-            print(f"Error during vector search: {str(e)}")
-            context = "No relevant information found."
-
-        try:
-            llm_result = chatbot_llm.invoke({"context":context, "question":query})
-            answer = llm_result.content
-        except Exception as e:
-            print(f"Error generating answer: {str(e)}")
-            answer = f"Sorry, I couldn't process your question. Error: {str(e)}"
-    
-    return answer
 
 def main():
     """Main function to execute the innovation resolution workflow."""
@@ -1566,15 +1391,15 @@ def main():
 
     
     # Step 3: Resolve innovation duplicates
-    canonical_mapping = resolve_innovation_duplicates(
-        df_relationships=df_relationships,
-        model=embed_model,
-        cache_config=cache_config,
-        method="hdbscan",  # 默认使用hdbscan
-        min_cluster_size=2,  # 可配置参数
-        metric="cosine",
-        cluster_selection_method="eom"
-    )
+    # canonical_mapping = resolve_innovation_duplicates(
+    #     df_relationships=df_relationships,
+    #     model=embed_model,
+    #     cache_config=cache_config,
+    #     method="hdbscan",  # 默认使用hdbscan
+    #     min_cluster_size=2,  # 可配置参数
+    #     metric="cosine",
+    #     cluster_selection_method="eom"
+    # )
         
     # Step 4: Create consolidated knowledge graph
     consolidated_graph = create_innovation_knowledge_graph(df_relationships, canonical_mapping)

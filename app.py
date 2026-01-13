@@ -8,34 +8,36 @@ import streamlit as st
 from streamlit.components.v1 import html
 import warnings
 
+from pathlib import Path
+
 # 抑制所有警告
 warnings.filterwarnings("ignore")
 
 # 尝试生成配置文件（如果文件存在）
-try:
-    config_generator = os.path.join(os.path.dirname(os.path.abspath(__file__)), "generate_config_from_toml.py")
-    if os.path.exists(config_generator):
-        print("尝试生成配置文件...")
-        import subprocess
-        result = subprocess.run([sys.executable, config_generator], capture_output=True, text=True)
-        if result.returncode == 0:
-            print("配置文件生成成功！")
-            print(result.stdout)
-        else:
-            print(f"配置文件生成失败: {result.stderr}")
-    else:
-        print(f"配置生成脚本不存在: {config_generator}")
-except Exception as e:
-    print(f"尝试生成配置文件时出错: {str(e)}")
+# try:
+#     config_generator = os.path.join(os.path.dirname(os.path.abspath(__file__)), "generate_config_from_toml.py")
+#     if os.path.exists(config_generator):
+#         print("尝试生成配置文件...")
+#         import subprocess
+#         result = subprocess.run([sys.executable, config_generator], capture_output=True, text=True)
+#         if result.returncode == 0:
+#             print("配置文件生成成功！")
+#             print(result.stdout)
+#         else:
+#             print(f"配置文件生成失败: {result.stderr}")
+#     else:
+#         print(f"配置生成脚本不存在: {config_generator}")
+# except Exception as e:
+#     print(f"尝试生成配置文件时出错: {str(e)}")
 
-# 创建数据目录和密钥目录（如果不存在）
-data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-keys_dir = os.path.join(data_dir, "keys")
-os.makedirs(keys_dir, exist_ok=True)
+# # 创建数据目录和密钥目录（如果不存在）
+# data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+# keys_dir = Path(__file__).resolve().parent / "config"
+# os.makedirs(keys_dir, exist_ok=True)
 
 
 
-from innovation_resolution import chat_bot
+from azure_openai import chat_bot
 
 # ----------------------------
 # Page Config & Title

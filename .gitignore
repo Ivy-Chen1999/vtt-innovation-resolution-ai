@@ -9,9 +9,15 @@ __pycache__/
 
 .*
 !.gitignore
-!.streamlit/
+!.dockerignore
+
+*.md
+!README.md
 
 ai/
+config/
+qdrant_data/
+
 
 
 *.json

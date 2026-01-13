@@ -1,0 +1,31 @@
+# data/
+keys/
+logs/
+# results/
+venvs/
+.streamlit/
+__pycache__/
+.DS_Store
+
+.*
+!.gitignore
+!.dockerignore
+
+*.md
+!README.md
+
+ai/
+
+qdrant_data/
+
+
+
+*.json
+# *.png
+# *.html
+*.tar
+*.tar.bz2
+*.csv
+
+!evaluation/*_template.json
+!evaluation/*_template.csv

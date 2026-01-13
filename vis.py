@@ -162,11 +162,18 @@ def visualize_network_tufte_3D(analysis_results: dict):
             node_colors.append(COLOR_PALETTE['Unknown'])
 
         # 仅最重要节点显示标签
+        maxlen=16
         if n in [nd for nd, _ in analysis_results['key_innovations'][:3]] \
            or n in [nd for nd, _ in analysis_results['key_orgs'][:3]]:
             label = (subG.nodes[n].get('name') 
                      if subG.nodes[n].get('type') == 'Organization' 
                      else subG.nodes[n].get('names', n))
+            if label and isinstance(label, str) and len(label) > maxlen:
+                label = label[:maxlen - 2] + "…"
+            elif isinstance(label, (set, list)):  # 兼容 names 可能是集合或列表
+                label = next(iter(label), n)
+                if len(label) > maxlen:
+                    label = label[:maxlen - 2] + "…"
         else:
             label = ""
         node_labels.append(label)
@@ -221,11 +228,13 @@ def visualize_network_tufte_3D(analysis_results: dict):
     fig.update_layout(
         title='VTT Innovation Network (3D Subgraph)',
         scene=dict(
-            xaxis=dict(showticklabels=False, title=''),
-            yaxis=dict(showticklabels=False, title=''),
-            zaxis=dict(showticklabels=False, title=''),
-            camera=dict(eye=dict(x=1.5, y=1.5, z=1.5))
+            xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, showbackground=False, visible=False),
+            yaxis=dict(showticklabels=False, showgrid=False, zeroline=False, showbackground=False, visible=False),
+            zaxis=dict(showticklabels=False, showgrid=False, zeroline=False, showbackground=False, visible=False),
+            camera=dict(eye=dict(x=1.2, y=1.2, z=1.2))
         ),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(l=0, r=0, b=0, t=40),
         legend=dict(title_text='Relation Types', x=0, y=1, bgcolor='rgba(255,255,255,0.5)')
     )

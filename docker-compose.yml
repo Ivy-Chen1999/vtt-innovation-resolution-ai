@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - ./qdrant_data:/qdrant/storage 
+    restart: unless-stopped
+  streamlit-app:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      container_name: streamlit_app
+      ports:
+        - "8501:8501"
+      depends_on:
+        - qdrant
+      volumes:
+        - .:/app
+      environment:
+        - PYTHONUNBUFFERED=1
+      env_file:
+      - .env
